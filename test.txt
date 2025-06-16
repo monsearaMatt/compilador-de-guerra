@@ -1,0 +1,10 @@
+peloton alfa {
+    disparo beta;
+}
+
+mision ataqueSimple(x, y) {
+    disparo refuerzo;
+    disparo retirada;
+}
+
+ataqueSimple(10, 3);

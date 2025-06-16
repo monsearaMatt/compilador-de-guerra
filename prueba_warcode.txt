@@ -1,0 +1,62 @@
+// 1. Definición de misiones
+mision atacar_enemigo(x, y) {
+    disparo x;
+    disparo y;
+    retornar x + y;
+}
+
+mision defensa(z) {
+    si z > 5 entonces {
+        disparo z;
+    } sino {
+        repetir 3 hacer disparo z;
+    }
+    retornar z;
+}
+
+// 2. Uso de pelotones y disparos
+peloton alfa {
+    disparo 10;
+    disparo 20;
+}
+
+disparo 5;
+disparo 7;
+
+// 3. Condicionales simples
+si 3 > 2 entonces disparo 1;
+si 1 == 1 entonces disparo 2 sino disparo 3;
+
+// 4. Bucles
+mientras 5 > 3 hacer disparo 4;
+repetir 4 hacer disparo 6;
+
+// 5. Llamadas a misiones con argumentos
+atacar_enemigo(5, 7);
+defensa(4);
+
+// --- Al final todo mezclado ---
+
+peloton bravo {
+    mision carga_misil(a, b) {
+        disparo a;
+        disparo b;
+        retornar a * b;
+    }
+
+    si 2 < 3 entonces {
+        cargar_misil(3, 4);
+    } sino {
+        repetir 2 hacer disparo 8;
+    }
+
+    mientras 10 > 0 hacer disparo 9;
+    retornar 0;
+}
+
+peloton charlie {
+    disparo 11;
+    defensa(6);
+    atacar_enemigo(1, 2);
+    repetir 3 hacer disparo 12;
+}
