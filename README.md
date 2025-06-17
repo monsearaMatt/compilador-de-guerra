@@ -1,186 +1,97 @@
-# compilador de guerra
-WARCODE - Lenguaje de Programación Militar
-------------------------------------------
+# ToroLang
 
-Este proyecto consiste en la creación de un lenguaje de programación personalizado llamado WARCODE. Es un lenguaje inspirado en comandos militares, donde se pueden crear pelotones, disparar, ejecutar misiones, usar condicionales y manejar el flujo de un campo de batalla simulado.
+ToroLang es un lenguaje interpretado minimalista implementado con Flex y Bison. Incluye soporte para variables, expresiones aritméticas, funciones definidas por el usuario, estructuras de control como bucles `while` (denominados `calefactor`), y salida por consola mediante `zapatilla`.
 
-Fue desarrollado utilizando dos herramientas principales:
-- Flex: para el análisis léxico.
-- Bison: para el análisis sintáctico.
+## Características del lenguaje
 
-También se utiliza gcc para compilar el programa en C.
+- Variables con nombres de una sola letra (`a`, `b`, etc.)
+- Operaciones aritméticas: `+`, `-`, `*`, `/`
+- Comparación `>` utilizada en bucles
+- Salida de valores con `zapatilla`
+- Declaración de funciones con `toromax`
+- Retorno de valores con `return`
+- Llamadas a funciones con un único parámetro
 
-------------------------------------------------------------
-CÓMO SE CREÓ EL COMPILADOR
-------------------------------------------------------------
+## Ejemplo de código
 
-1. Se escribió el archivo 'warcode.l' con las reglas léxicas. Aquí se identifican las palabras clave del lenguaje como "peloton", "disparo", "mision", "si", "entonces", etc., así como también números, operadores y nombres de identificadores.
+```c
+toromax cuadrado(x) {
+  return x * x;
+}
 
-2. Se escribió el archivo 'warcode.y' con la gramática del lenguaje. Aquí se define cómo deben estar estructuradas las instrucciones y se asociaron acciones a cada regla para que se imprimieran mensajes cuando se reconocen comandos del lenguaje.
-
-3. Para compilar, se usaron los siguientes comandos en terminal:
-
-    flex warcode.l
-    bison -d warcode.y
-    gcc lex.yy.c warcode.tab.c -o warcode.exe
-
-Esto genera el ejecutable 'warcode.exe' que interpreta el código escrito en WARCODE.
-
-------------------------------------------------------------
-CÓMO SE USA EL COMPILADOR
-------------------------------------------------------------
-
-Una vez que está compilado, se puede ejecutar de la siguiente forma:
-
-    ./warcode.exe < test.txt
-
-El archivo 'test.txt' debe contener el código escrito en el lenguaje WARCODE.
-
-Cuando se ejecuta, el programa lee el archivo, interpreta las instrucciones y muestra en consola los resultados o mensajes militares correspondientes.
-
-------------------------------------------------------------
-CÓMO PROGRAMAR EN WARCODE
-------------------------------------------------------------
-
-A continuación se explica cómo escribir código en WARCODE con ejemplos.
-
-------------------------------------------------------------
-1. CREAR UN PELOTÓN
-------------------------------------------------------------
-
-Sintaxis:
-
-    peloton nombre_peloton {
-        disparo objetivo;
-    }
-
-Ejemplo:
-
-    peloton alfa {
-        disparo enemigo;
-    }
-
-Resultado:
-
-    ¡DISPARANDO ORDEN A enemigo!
-    ¡SE HA FORMADO EL PELOTON alfa!
-
-------------------------------------------------------------
-2. DEFINIR UNA MISIÓN (FUNCIONES)
-------------------------------------------------------------
-
-Sintaxis:
-
-    mision nombre(param1, param2) {
-        // instrucciones
-    }
-
-Ejemplo:
-
-    mision ataque(x, y) {
-        si x > y entonces {
-            disparo refuerzo;
-        } sino {
-            disparo retirada;
-        }
-    }
-
-Resultado al definir:
-
-    ¡SE HA DEFINIDO LA MISION ataque!
-
-------------------------------------------------------------
-3. LLAMAR A UNA MISIÓN
-------------------------------------------------------------
-
-Sintaxis:
-
-    nombre_mision(valor1, valor2);
-
-Ejemplo:
-
-    ataque(10, 5);
-
-Resultado:
-
-    ¡EJECUTANDO MISION ataque CON PARAMETROS: 10, 5!
-    ¡DISPARANDO ORDEN A refuerzo!
-
-------------------------------------------------------------
-4. CONDICIONALES
-------------------------------------------------------------
-
-Sintaxis:
-
-    si condicion entonces {
-        // instrucciones
-    } sino {
-        // instrucciones
-    }
-
-Operadores válidos:
-    ==, !=, >, <, >=, <=
-
-Ejemplo dentro de una misión:
-
-    si x == y entonces {
-        disparo empate;
-    } sino {
-        disparo continuar;
-    }
-
-------------------------------------------------------------
-5. OPERACIONES MATEMÁTICAS
-------------------------------------------------------------
-
-Puedes usar +, -, *, / en las expresiones condicionales o dentro de funciones.
-
-Ejemplo:
-
-    si (x + 2) > (y * 3) entonces {
-        disparo ganar;
-    }
-
-------------------------------------------------------------
-EJEMPLO COMPLETO DE UN PROGRAMA EN WARCODE
-------------------------------------------------------------
-
-    peloton bravo {
-        disparo enemigo;
-    }
-
-    mision ataque(x, y) {
-        si x > y entonces {
-            disparo refuerzo;
-        } sino {
-            disparo retirada;
-        }
-    }
-
-    ataque(10, 5);
-
+a = 3;
+zapatilla cuadrado(a);
 Salida esperada:
 
-    ¡DISPARANDO ORDEN A enemigo!
-    ¡SE HA FORMADO EL PELOTON bravo!
-    ¡SE HA DEFINIDO LA MISION ataque!
-    ¡EJECUTANDO MISION ataque CON PARAMETROS: 10, 5!
-    ¡DISPARANDO ORDEN A refuerzo!
 
-------------------------------------------------------------
-ARCHIVOS INCLUIDOS
-------------------------------------------------------------
+9
+Compilación
+Se requiere flex, bison y un compilador C (como gcc).
 
-- warcode.l       -> Reglas léxicas
-- warcode.y       -> Gramática y acciones semánticas
-- test.txt        -> Código de prueba en WARCODE
-- warcode.exe     -> Ejecutable del compilador
-- README.txt      -> Este documento
 
-------------------------------------------------------------
-AUTOR
-------------------------------------------------------------
+bison -d calc.y
+flex calc.l
+gcc calc.tab.c lex.yy.c -o calc
+Uso
+El programa se ejecuta redireccionando un archivo de entrada que contenga código en ToroLang:
 
-Monserrat Scarletthe Aravena Mattamala  
+
+./calc < archivo.txt
+Palabras clave
+Palabra clave	Significado
+zapatilla	Imprime el valor de una variable
+calefactor	Bucle while
+toromax	Declaración de función
+return	Retorna un valor desde una función
+
+Gramática soportada (simplificada)
+
+programa       → instrucciones
+instrucciones  → instruccion | instrucciones instruccion
+instruccion    → ID = expresion ;
+               | zapatilla ID ;
+               | calefactor condicion { instrucciones }
+               | toromax ID ( ID ) { instrucciones }
+               | return expresion ;
+               | ID ( expresion ) ;
+
+expresion      → NUM | ID | expresion op expresion | ID ( expresion )
+condicion      → expresion > expresion
+Limitaciones
+Solo se permiten variables de una sola letra
+
+No hay manejo de errores semánticos complejos
+
+Solo se admite un parámetro por función
+
+Las condiciones de los bucles están limitadas a >
+
+No se maneja división por cero de forma detallada
+
+Archivos del proyecto
+calc.l: Archivo de definición del lexer (Flex)
+
+calc.y: Archivo de gramática y semántica (Bison)
+
+test.txt: Archivo de pruebas con ejemplos en ToroLang
+
+README.md: Documento actual
+
+
+toromax factorial(n) {
+  calefactor n > 1 {
+    n = n * factorial(n - 1);
+    return n;
+  }
+  return 1;
+}
+
+zapatilla factorial(5);
+Salida esperada:
+
+
+120
+Autor
+Monserratt Scarletthe Avena Mattamala
 Juan Javier Contreras Ramirez
-Taller de Compiladores - Año 2025  primer semestre
+Desarrollado como un proyecto de lenguaje interpretado basado en Flex y Bison.Taller de Compiladores - Año 2025  primer semestre
