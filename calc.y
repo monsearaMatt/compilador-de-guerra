@@ -362,7 +362,7 @@ int evaluar(Expresion* expr) {
             char buffer[256];
             
             while (1) {
-                printf("Ingrese un número o expresión matemática: ");
+                printf("escriba: ");
                 fflush(stdout);
                 
                 if (fgets(buffer, sizeof(buffer), stdin) == NULL) {
