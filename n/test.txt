@@ -1,0 +1,8 @@
+zapatilla "=== CALCULADORA BÁSICA ===";
+zapatilla "Ingrese el primer número:";
+a = teclado;
+zapatilla "Ingrese el segundo número:";
+b = teclado;
+resultado = a + b;
+zapatilla "La suma es: ";
+zapatilla resultado;

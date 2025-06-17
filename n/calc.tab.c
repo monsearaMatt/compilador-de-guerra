@@ -69,64 +69,13 @@
 /* First part of user prologue.  */
 #line 1 "calc.y"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-typedef struct Expresion {
-    int tipo;
-    int valor;
-    char* nombre;
-    int op;
-    struct Expresion* izq;
-    struct Expresion* der;
-    struct Expresion* args;
-} Expresion;
-
-typedef struct Instruccion {
-    int tipo;
-    char* id;
-    Expresion* expr;
-    Expresion* cond;
-    struct Instruccion* cuerpo;
-    struct Instruccion* sig;
-} Instruccion;
-
-typedef struct Funcion {
-    char* nombre;
-    char* parametro;
-    Instruccion* cuerpo;
-    struct Funcion* sig;
-} Funcion;
-
-typedef struct {
-    int hay_retorno;
-    int valor;
-} ResultadoRetorno;
+#include "calc.h"
 
 // Variables globales
-int memoria[26] = {0};
+Variable* variables = NULL;
 Funcion* funciones = NULL;
 
-// Declaraciones de funciones
-Expresion* crear_num(int);
-Expresion* crear_var(char*);
-Expresion* crear_op(int, Expresion*, Expresion*);
-Expresion* crear_llamada(char*, Expresion*);
-Instruccion* crear_asignacion(char*, Expresion*);
-Instruccion* crear_while(Expresion*, Instruccion*);
-Instruccion* crear_return(Expresion*);
-Instruccion* agregar_instr(Instruccion*, Instruccion*);
-Funcion* crear_funcion(char*, char*, Instruccion*);
-void agregar_funcion(Funcion*);
-Funcion* buscar_funcion(char*);
-int evaluar(Expresion*);
-void ejecutar(Instruccion*);
-ResultadoRetorno ejecutar_con_retorno(Instruccion*);
-void yyerror(const char*);
-int yylex(void);
-
-#line 130 "calc.tab.c"
+#line 79 "calc.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -159,27 +108,38 @@ enum yysymbol_kind_t
   YYSYMBOL_YYUNDEF = 2,                    /* "invalid token"  */
   YYSYMBOL_NUM = 3,                        /* NUM  */
   YYSYMBOL_ID = 4,                         /* ID  */
-  YYSYMBOL_ZAPATILLA = 5,                  /* ZAPATILLA  */
-  YYSYMBOL_CALEFACTOR = 6,                 /* CALEFACTOR  */
-  YYSYMBOL_TOROMAX = 7,                    /* TOROMAX  */
-  YYSYMBOL_RETURN = 8,                     /* RETURN  */
-  YYSYMBOL_9_ = 9,                         /* '+'  */
-  YYSYMBOL_10_ = 10,                       /* '-'  */
-  YYSYMBOL_11_ = 11,                       /* '*'  */
-  YYSYMBOL_12_ = 12,                       /* '/'  */
-  YYSYMBOL_13_ = 13,                       /* '='  */
-  YYSYMBOL_14_ = 14,                       /* ';'  */
-  YYSYMBOL_15_ = 15,                       /* '{'  */
-  YYSYMBOL_16_ = 16,                       /* '}'  */
-  YYSYMBOL_17_ = 17,                       /* '('  */
-  YYSYMBOL_18_ = 18,                       /* ')'  */
-  YYSYMBOL_19_ = 19,                       /* '>'  */
-  YYSYMBOL_YYACCEPT = 20,                  /* $accept  */
-  YYSYMBOL_programa = 21,                  /* programa  */
-  YYSYMBOL_instrucciones = 22,             /* instrucciones  */
-  YYSYMBOL_instruccion = 23,               /* instruccion  */
-  YYSYMBOL_expresion = 24,                 /* expresion  */
-  YYSYMBOL_condicion = 25                  /* condicion  */
+  YYSYMBOL_STRING = 5,                     /* STRING  */
+  YYSYMBOL_ZAPATILLA = 6,                  /* ZAPATILLA  */
+  YYSYMBOL_CALEFACTOR = 7,                 /* CALEFACTOR  */
+  YYSYMBOL_TOROMAX = 8,                    /* TOROMAX  */
+  YYSYMBOL_RETURN = 9,                     /* RETURN  */
+  YYSYMBOL_TECLADO = 10,                   /* TECLADO  */
+  YYSYMBOL_REFRIGERADOR = 11,              /* REFRIGERADOR  */
+  YYSYMBOL_MICROONDAS = 12,                /* MICROONDAS  */
+  YYSYMBOL_LICUADORA = 13,                 /* LICUADORA  */
+  YYSYMBOL_IGUAL = 14,                     /* IGUAL  */
+  YYSYMBOL_DIFERENTE = 15,                 /* DIFERENTE  */
+  YYSYMBOL_MENORIGUAL = 16,                /* MENORIGUAL  */
+  YYSYMBOL_MAYORIGUAL = 17,                /* MAYORIGUAL  */
+  YYSYMBOL_MENOR = 18,                     /* MENOR  */
+  YYSYMBOL_MAYOR = 19,                     /* MAYOR  */
+  YYSYMBOL_20_ = 20,                       /* '+'  */
+  YYSYMBOL_21_ = 21,                       /* '-'  */
+  YYSYMBOL_22_ = 22,                       /* '*'  */
+  YYSYMBOL_23_ = 23,                       /* '/'  */
+  YYSYMBOL_24_ = 24,                       /* '='  */
+  YYSYMBOL_25_ = 25,                       /* ';'  */
+  YYSYMBOL_26_ = 26,                       /* '{'  */
+  YYSYMBOL_27_ = 27,                       /* '}'  */
+  YYSYMBOL_28_ = 28,                       /* '('  */
+  YYSYMBOL_29_ = 29,                       /* ')'  */
+  YYSYMBOL_YYACCEPT = 30,                  /* $accept  */
+  YYSYMBOL_programa = 31,                  /* programa  */
+  YYSYMBOL_instrucciones = 32,             /* instrucciones  */
+  YYSYMBOL_instruccion = 33,               /* instruccion  */
+  YYSYMBOL_expresion = 34,                 /* expresion  */
+  YYSYMBOL_condicion = 35,                 /* condicion  */
+  YYSYMBOL_bloque_else = 36                /* bloque_else  */
 };
 typedef enum yysymbol_kind_t yysymbol_kind_t;
 
@@ -505,21 +465,21 @@ union yyalloc
 #endif /* !YYCOPY_NEEDED */
 
 /* YYFINAL -- State number of the termination state.  */
-#define YYFINAL  18
+#define YYFINAL  22
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   81
+#define YYLAST   143
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  20
+#define YYNTOKENS  30
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  6
+#define YYNNTS  7
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  18
+#define YYNRULES  29
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  49
+#define YYNSTATES  77
 
 /* YYMAXUTOK -- Last valid token kind.  */
-#define YYMAXUTOK   263
+#define YYMAXUTOK   274
 
 
 /* YYTRANSLATE(TOKEN-NUM) -- Symbol number corresponding to TOKEN-NUM
@@ -537,15 +497,15 @@ static const yytype_int8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-      17,    18,    11,     9,     2,    10,     2,    12,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,    14,
-       2,    13,    19,     2,     2,     2,     2,     2,     2,     2,
+      28,    29,    22,    20,     2,    21,     2,    23,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,    25,
+       2,    24,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,    15,     2,    16,     2,     2,     2,     2,
+       2,     2,     2,    26,     2,    27,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
@@ -559,15 +519,17 @@ static const yytype_int8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     1,     2,     3,     4,
-       5,     6,     7,     8
+       5,     6,     7,     8,     9,    10,    11,    12,    13,    14,
+      15,    16,    17,    18,    19
 };
 
 #if YYDEBUG
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int8 yyrline[] =
 {
-       0,    78,    78,    82,    83,    87,    88,    90,    91,    93,
-      94,    98,    99,   100,   101,   102,   103,   104,   108
+       0,    33,    33,    37,    38,    42,    43,    44,    45,    46,
+      48,    49,    53,    54,    55,    56,    57,    58,    59,    60,
+      61,    65,    66,    67,    68,    69,    70,    74,    75,    76
 };
 #endif
 
@@ -583,10 +545,12 @@ static const char *yysymbol_name (yysymbol_kind_t yysymbol) YY_ATTRIBUTE_UNUSED;
    First, the terminals, then, starting at YYNTOKENS, nonterminals.  */
 static const char *const yytname[] =
 {
-  "\"end of file\"", "error", "\"invalid token\"", "NUM", "ID",
-  "ZAPATILLA", "CALEFACTOR", "TOROMAX", "RETURN", "'+'", "'-'", "'*'",
-  "'/'", "'='", "';'", "'{'", "'}'", "'('", "')'", "'>'", "$accept",
-  "programa", "instrucciones", "instruccion", "expresion", "condicion", YY_NULLPTR
+  "\"end of file\"", "error", "\"invalid token\"", "NUM", "ID", "STRING",
+  "ZAPATILLA", "CALEFACTOR", "TOROMAX", "RETURN", "TECLADO",
+  "REFRIGERADOR", "MICROONDAS", "LICUADORA", "IGUAL", "DIFERENTE",
+  "MENORIGUAL", "MAYORIGUAL", "MENOR", "MAYOR", "'+'", "'-'", "'*'", "'/'",
+  "'='", "';'", "'{'", "'}'", "'('", "')'", "$accept", "programa",
+  "instrucciones", "instruccion", "expresion", "condicion", "bloque_else", YY_NULLPTR
 };
 
 static const char *
@@ -596,7 +560,7 @@ yysymbol_name (yysymbol_kind_t yysymbol)
 }
 #endif
 
-#define YYPACT_NINF (-28)
+#define YYPACT_NINF (-25)
 
 #define yypact_value_is_default(Yyn) \
   ((Yyn) == YYPACT_NINF)
@@ -610,11 +574,14 @@ yysymbol_name (yysymbol_kind_t yysymbol)
    STATE-NUM.  */
 static const yytype_int8 yypact[] =
 {
-      64,    60,     1,     1,     2,     1,    32,    64,   -28,     1,
-       1,   -28,    21,    41,    25,    28,    43,    47,   -28,   -28,
-      53,     0,     1,     1,     1,     1,     1,   -28,     1,    64,
-      45,   -28,   -28,    52,    36,    30,    30,   -28,   -28,    69,
-       9,    56,   -28,   -28,   -28,    61,    64,    23,   -28
+     110,   -12,    91,    91,     9,    91,    91,    19,   110,   -25,
+      91,    91,   -25,    -4,   -25,   -25,   102,    90,     5,    10,
+     108,    20,   -25,   -25,   114,   -14,    91,    91,    91,    91,
+      91,   -25,    91,    91,    91,    91,    91,    91,   110,    36,
+     -25,   110,   -25,    26,    69,   -19,   -19,   -25,   -25,   120,
+     120,   120,   120,   120,   120,    14,    16,    46,   -25,   -25,
+     -25,    32,    30,   110,    35,    91,   -25,    61,   110,    38,
+     -25,    70,   110,   -25,    76,    30,   -25
 };
 
 /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -622,23 +589,26 @@ static const yytype_int8 yypact[] =
    means the default is an error.  */
 static const yytype_int8 yydefact[] =
 {
-       0,     0,     0,     0,     0,     0,     0,     2,     4,     0,
-       0,    11,    12,     0,     0,     0,     0,     0,     1,     3,
-       0,     0,     0,     0,     0,     0,     0,     6,     0,     0,
-       0,     9,     5,     0,     0,    13,    14,    15,    16,    18,
-       0,     0,    10,    17,     7,     0,     0,     0,     8
+       0,     0,     0,     0,     0,     0,     0,     0,     2,     4,
+       0,     0,    12,    13,    14,    20,     0,     0,     0,     0,
+       0,     0,     1,     3,     0,     0,     0,     0,     0,     0,
+       0,     6,     0,     0,     0,     0,     0,     0,     0,     0,
+      10,     0,     5,     0,     0,    15,    16,    17,    18,    25,
+      26,    24,    23,    22,    21,     0,     0,     0,    11,    19,
+       7,     0,    29,     0,     0,     0,     8,     0,     0,     0,
+       9,     0,     0,    27,     0,    29,    28
 };
 
 /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-     -28,   -28,   -27,    -7,    -2,   -28
+     -25,   -25,   -24,    -8,     0,    -5,   -13
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-       0,     6,     7,     8,    13,    15
+       0,     7,     8,     9,    17,    18,    66
 };
 
 /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -646,53 +616,70 @@ static const yytype_int8 yydefgoto[] =
    number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int8 yytable[] =
 {
-      19,    14,    40,    17,    11,    12,    16,    20,    21,    23,
-      24,    25,    26,     1,     2,     3,     4,     5,    33,    47,
-      34,    35,    36,    37,    38,    44,    39,     1,     2,     3,
-       4,     5,    18,    19,    23,    24,    25,    26,    22,    48,
-      19,    25,    26,    29,    28,    23,    24,    25,    26,    41,
-      23,    24,    25,    26,    43,    27,    23,    24,    25,    26,
-      30,    31,    23,    24,    25,    26,    42,    32,     1,     2,
-       3,     4,     5,     9,    45,     0,    46,    10,    23,    24,
-      25,    26
+      23,    21,    16,    29,    30,    20,    27,    28,    29,    30,
+      24,    25,    10,    19,    55,    43,    11,    57,     1,    22,
+       2,     3,     4,     5,    26,     6,    44,    45,    46,    47,
+      48,    38,    49,    50,    51,    52,    53,    54,    39,    67,
+      56,    60,    64,    65,    71,    61,    41,    23,    74,    23,
+       1,    58,     2,     3,     4,     5,     0,     6,    63,    23,
+      69,    68,    76,    23,    72,     1,    23,     2,     3,     4,
+       5,     0,     6,    62,     1,     0,     2,     3,     4,     5,
+       1,     6,     2,     3,     4,     5,     0,     6,    70,    27,
+      28,    29,    30,     0,    12,    13,    14,    73,    59,     0,
+       0,    15,     0,    75,    32,    33,    34,    35,    36,    37,
+      27,    28,    29,    30,     1,     0,     2,     3,     4,     5,
+       0,     6,    27,    28,    29,    30,     0,    31,    27,    28,
+      29,    30,     0,    40,    27,    28,    29,    30,     0,    42,
+      27,    28,    29,    30
 };
 
 static const yytype_int8 yycheck[] =
 {
-       7,     3,    29,     5,     3,     4,     4,     9,    10,     9,
-      10,    11,    12,     4,     5,     6,     7,     8,    18,    46,
-      22,    23,    24,    25,    26,    16,    28,     4,     5,     6,
-       7,     8,     0,    40,     9,    10,    11,    12,    17,    16,
-      47,    11,    12,    15,    19,     9,    10,    11,    12,     4,
-       9,    10,    11,    12,    18,    14,     9,    10,    11,    12,
-      17,    14,     9,    10,    11,    12,    14,    14,     4,     5,
-       6,     7,     8,    13,    18,    -1,    15,    17,     9,    10,
-      11,    12
+       8,     6,     2,    22,    23,     5,    20,    21,    22,    23,
+      10,    11,    24,     4,    38,    29,    28,    41,     4,     0,
+       6,     7,     8,     9,    28,    11,    26,    27,    28,    29,
+      30,    26,    32,    33,    34,    35,    36,    37,    28,    63,
+       4,    27,    12,    13,    68,    29,    26,    55,    72,    57,
+       4,    25,     6,     7,     8,     9,    -1,    11,    26,    67,
+      65,    26,    75,    71,    26,     4,    74,     6,     7,     8,
+       9,    -1,    11,    27,     4,    -1,     6,     7,     8,     9,
+       4,    11,     6,     7,     8,     9,    -1,    11,    27,    20,
+      21,    22,    23,    -1,     3,     4,     5,    27,    29,    -1,
+      -1,    10,    -1,    27,    14,    15,    16,    17,    18,    19,
+      20,    21,    22,    23,     4,    -1,     6,     7,     8,     9,
+      -1,    11,    20,    21,    22,    23,    -1,    25,    20,    21,
+      22,    23,    -1,    25,    20,    21,    22,    23,    -1,    25,
+      20,    21,    22,    23
 };
 
 /* YYSTOS[STATE-NUM] -- The symbol kind of the accessing symbol of
    state STATE-NUM.  */
 static const yytype_int8 yystos[] =
 {
-       0,     4,     5,     6,     7,     8,    21,    22,    23,    13,
-      17,     3,     4,    24,    24,    25,     4,    24,     0,    23,
-      24,    24,    17,     9,    10,    11,    12,    14,    19,    15,
-      17,    14,    14,    18,    24,    24,    24,    24,    24,    24,
-      22,     4,    14,    18,    16,    18,    15,    22,    16
+       0,     4,     6,     7,     8,     9,    11,    31,    32,    33,
+      24,    28,     3,     4,     5,    10,    34,    34,    35,     4,
+      34,    35,     0,    33,    34,    34,    28,    20,    21,    22,
+      23,    25,    14,    15,    16,    17,    18,    19,    26,    28,
+      25,    26,    25,    29,    34,    34,    34,    34,    34,    34,
+      34,    34,    34,    34,    34,    32,     4,    32,    25,    29,
+      27,    29,    27,    26,    12,    13,    36,    32,    26,    35,
+      27,    32,    26,    27,    32,    27,    36
 };
 
 /* YYR1[RULE-NUM] -- Symbol kind of the left-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr1[] =
 {
-       0,    20,    21,    22,    22,    23,    23,    23,    23,    23,
-      23,    24,    24,    24,    24,    24,    24,    24,    25
+       0,    30,    31,    32,    32,    33,    33,    33,    33,    33,
+      33,    33,    34,    34,    34,    34,    34,    34,    34,    34,
+      34,    35,    35,    35,    35,    35,    35,    36,    36,    36
 };
 
 /* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr2[] =
 {
-       0,     2,     1,     2,     1,     4,     3,     5,     8,     3,
-       5,     1,     1,     3,     3,     3,     3,     4,     3
+       0,     2,     1,     2,     1,     4,     3,     5,     6,     8,
+       3,     5,     1,     1,     1,     3,     3,     3,     3,     4,
+       1,     3,     3,     3,     3,     3,     3,     4,     6,     0
 };
 
 
@@ -1156,110 +1143,176 @@ yyreduce:
   switch (yyn)
     {
   case 2: /* programa: instrucciones  */
-#line 78 "calc.y"
+#line 33 "calc.y"
                   { ejecutar((yyvsp[0].instr)); }
-#line 1162 "calc.tab.c"
+#line 1149 "calc.tab.c"
     break;
 
   case 3: /* instrucciones: instrucciones instruccion  */
-#line 82 "calc.y"
+#line 37 "calc.y"
                                 { (yyval.instr) = agregar_instr((yyvsp[-1].instr), (yyvsp[0].instr)); }
-#line 1168 "calc.tab.c"
+#line 1155 "calc.tab.c"
     break;
 
   case 4: /* instrucciones: instruccion  */
-#line 83 "calc.y"
+#line 38 "calc.y"
                                 { (yyval.instr) = (yyvsp[0].instr); }
-#line 1174 "calc.tab.c"
+#line 1161 "calc.tab.c"
     break;
 
   case 5: /* instruccion: ID '=' expresion ';'  */
-#line 87 "calc.y"
+#line 42 "calc.y"
                                    { (yyval.instr) = crear_asignacion((yyvsp[-3].id), (yyvsp[-1].expr)); }
-#line 1180 "calc.tab.c"
+#line 1167 "calc.tab.c"
     break;
 
   case 6: /* instruccion: ZAPATILLA expresion ';'  */
-#line 88 "calc.y"
-                              { (yyval.instr) = crear_asignacion("_print", (yyvsp[-1].expr)); }
-#line 1186 "calc.tab.c"
+#line 43 "calc.y"
+                                   { (yyval.instr) = crear_asignacion("_print", (yyvsp[-1].expr)); }
+#line 1173 "calc.tab.c"
     break;
 
   case 7: /* instruccion: CALEFACTOR condicion '{' instrucciones '}'  */
-#line 90 "calc.y"
+#line 44 "calc.y"
                                                  { (yyval.instr) = crear_while((yyvsp[-3].expr), (yyvsp[-1].instr)); }
+#line 1179 "calc.tab.c"
+    break;
+
+  case 8: /* instruccion: REFRIGERADOR condicion '{' instrucciones '}' bloque_else  */
+#line 45 "calc.y"
+                                                               { (yyval.instr) = crear_if((yyvsp[-4].expr), (yyvsp[-2].instr), (yyvsp[0].instr)); }
+#line 1185 "calc.tab.c"
+    break;
+
+  case 9: /* instruccion: TOROMAX ID '(' ID ')' '{' instrucciones '}'  */
+#line 46 "calc.y"
+                                                  { agregar_funcion(crear_funcion((yyvsp[-6].id), (yyvsp[-4].id), (yyvsp[-1].instr))); 
+    (yyval.instr) = crear_asignacion("_", crear_num(0));  }
 #line 1192 "calc.tab.c"
     break;
 
-  case 8: /* instruccion: TOROMAX ID '(' ID ')' '{' instrucciones '}'  */
-#line 91 "calc.y"
-                                                  { agregar_funcion(crear_funcion((yyvsp[-6].id), (yyvsp[-4].id), (yyvsp[-1].instr))); 
-    (yyval.instr) = crear_asignacion("_", crear_num(0));  }
-#line 1199 "calc.tab.c"
-    break;
-
-  case 9: /* instruccion: RETURN expresion ';'  */
-#line 93 "calc.y"
+  case 10: /* instruccion: RETURN expresion ';'  */
+#line 48 "calc.y"
                                    { (yyval.instr) = crear_return((yyvsp[-1].expr)); }
-#line 1205 "calc.tab.c"
+#line 1198 "calc.tab.c"
     break;
 
-  case 10: /* instruccion: ID '(' expresion ')' ';'  */
-#line 94 "calc.y"
+  case 11: /* instruccion: ID '(' expresion ')' ';'  */
+#line 49 "calc.y"
                                    { (yyval.instr) = agregar_instr(NULL, crear_asignacion("_", crear_llamada((yyvsp[-4].id), (yyvsp[-2].expr)))); }
-#line 1211 "calc.tab.c"
+#line 1204 "calc.tab.c"
     break;
 
-  case 11: /* expresion: NUM  */
-#line 98 "calc.y"
+  case 12: /* expresion: NUM  */
+#line 53 "calc.y"
                                   { (yyval.expr) = crear_num((yyvsp[0].num)); }
-#line 1217 "calc.tab.c"
+#line 1210 "calc.tab.c"
     break;
 
-  case 12: /* expresion: ID  */
-#line 99 "calc.y"
+  case 13: /* expresion: ID  */
+#line 54 "calc.y"
                                   { (yyval.expr) = crear_var((yyvsp[0].id)); }
-#line 1223 "calc.tab.c"
+#line 1216 "calc.tab.c"
     break;
 
-  case 13: /* expresion: expresion '+' expresion  */
-#line 100 "calc.y"
+  case 14: /* expresion: STRING  */
+#line 55 "calc.y"
+                                  { (yyval.expr) = crear_string((yyvsp[0].str)); }
+#line 1222 "calc.tab.c"
+    break;
+
+  case 15: /* expresion: expresion '+' expresion  */
+#line 56 "calc.y"
                                   { (yyval.expr) = crear_op('+', (yyvsp[-2].expr), (yyvsp[0].expr)); }
-#line 1229 "calc.tab.c"
+#line 1228 "calc.tab.c"
     break;
 
-  case 14: /* expresion: expresion '-' expresion  */
-#line 101 "calc.y"
+  case 16: /* expresion: expresion '-' expresion  */
+#line 57 "calc.y"
                                   { (yyval.expr) = crear_op('-', (yyvsp[-2].expr), (yyvsp[0].expr)); }
-#line 1235 "calc.tab.c"
+#line 1234 "calc.tab.c"
     break;
 
-  case 15: /* expresion: expresion '*' expresion  */
-#line 102 "calc.y"
+  case 17: /* expresion: expresion '*' expresion  */
+#line 58 "calc.y"
                                   { (yyval.expr) = crear_op('*', (yyvsp[-2].expr), (yyvsp[0].expr)); }
-#line 1241 "calc.tab.c"
+#line 1240 "calc.tab.c"
     break;
 
-  case 16: /* expresion: expresion '/' expresion  */
-#line 103 "calc.y"
+  case 18: /* expresion: expresion '/' expresion  */
+#line 59 "calc.y"
                                   { (yyval.expr) = crear_op('/', (yyvsp[-2].expr), (yyvsp[0].expr)); }
-#line 1247 "calc.tab.c"
+#line 1246 "calc.tab.c"
     break;
 
-  case 17: /* expresion: ID '(' expresion ')'  */
-#line 104 "calc.y"
+  case 19: /* expresion: ID '(' expresion ')'  */
+#line 60 "calc.y"
                                   { (yyval.expr) = crear_llamada((yyvsp[-3].id), (yyvsp[-1].expr)); }
-#line 1253 "calc.tab.c"
+#line 1252 "calc.tab.c"
     break;
 
-  case 18: /* condicion: expresion '>' expresion  */
-#line 108 "calc.y"
-                                  { (yyval.expr) = crear_op('>', (yyvsp[-2].expr), (yyvsp[0].expr)); }
-#line 1259 "calc.tab.c"
+  case 20: /* expresion: TECLADO  */
+#line 61 "calc.y"
+                                  { (yyval.expr) = crear_input(); }
+#line 1258 "calc.tab.c"
+    break;
+
+  case 21: /* condicion: expresion MAYOR expresion  */
+#line 65 "calc.y"
+                                      { (yyval.expr) = crear_op('>', (yyvsp[-2].expr), (yyvsp[0].expr)); }
+#line 1264 "calc.tab.c"
+    break;
+
+  case 22: /* condicion: expresion MENOR expresion  */
+#line 66 "calc.y"
+                                      { (yyval.expr) = crear_op('<', (yyvsp[-2].expr), (yyvsp[0].expr)); }
+#line 1270 "calc.tab.c"
+    break;
+
+  case 23: /* condicion: expresion MAYORIGUAL expresion  */
+#line 67 "calc.y"
+                                      { (yyval.expr) = crear_op('G', (yyvsp[-2].expr), (yyvsp[0].expr)); }
+#line 1276 "calc.tab.c"
+    break;
+
+  case 24: /* condicion: expresion MENORIGUAL expresion  */
+#line 68 "calc.y"
+                                      { (yyval.expr) = crear_op('L', (yyvsp[-2].expr), (yyvsp[0].expr)); }
+#line 1282 "calc.tab.c"
+    break;
+
+  case 25: /* condicion: expresion IGUAL expresion  */
+#line 69 "calc.y"
+                                      { (yyval.expr) = crear_op('E', (yyvsp[-2].expr), (yyvsp[0].expr)); }
+#line 1288 "calc.tab.c"
+    break;
+
+  case 26: /* condicion: expresion DIFERENTE expresion  */
+#line 70 "calc.y"
+                                      { (yyval.expr) = crear_op('N', (yyvsp[-2].expr), (yyvsp[0].expr)); }
+#line 1294 "calc.tab.c"
+    break;
+
+  case 27: /* bloque_else: MICROONDAS '{' instrucciones '}'  */
+#line 74 "calc.y"
+                                       { (yyval.instr) = (yyvsp[-1].instr); }
+#line 1300 "calc.tab.c"
+    break;
+
+  case 28: /* bloque_else: LICUADORA condicion '{' instrucciones '}' bloque_else  */
+#line 75 "calc.y"
+                                                            { (yyval.instr) = crear_if((yyvsp[-4].expr), (yyvsp[-2].instr), (yyvsp[0].instr)); }
+#line 1306 "calc.tab.c"
+    break;
+
+  case 29: /* bloque_else: %empty  */
+#line 76 "calc.y"
+                                    { (yyval.instr) = NULL; }
+#line 1312 "calc.tab.c"
     break;
 
 
-#line 1263 "calc.tab.c"
+#line 1316 "calc.tab.c"
 
       default: break;
     }
@@ -1452,21 +1505,30 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 111 "calc.y"
+#line 79 "calc.y"
 
 
-// Funciones auxiliares
+// Implementación de todas las funciones auxiliares
 
 Expresion* crear_num(int valor) {
     Expresion* e = malloc(sizeof(Expresion));
-    e->tipo = 0; e->valor = valor; e->nombre = NULL;
+    e->tipo = 0; e->valor = valor; e->nombre = NULL; e->cadena = NULL;
     e->izq = e->der = e->args = NULL; e->op = 0;
     return e;
 }
 
 Expresion* crear_var(char* id) {
     Expresion* e = malloc(sizeof(Expresion));
-    e->tipo = 1; e->nombre = strdup(id); e->valor = 0;
+    e->tipo = 1; e->nombre = strdup(id); e->valor = 0; e->cadena = NULL;
+    e->izq = e->der = e->args = NULL; e->op = 0;
+    return e;
+}
+
+Expresion* crear_string(char* str) {
+    Expresion* e = malloc(sizeof(Expresion));
+    e->tipo = 5; // Nuevo tipo para strings
+    e->cadena = strdup(str); 
+    e->nombre = NULL; e->valor = 0;
     e->izq = e->der = e->args = NULL; e->op = 0;
     return e;
 }
@@ -1474,7 +1536,7 @@ Expresion* crear_var(char* id) {
 Expresion* crear_op(int op, Expresion* izq, Expresion* der) {
     Expresion* e = malloc(sizeof(Expresion));
     e->tipo = 2; e->op = op; e->izq = izq; e->der = der;
-    e->nombre = NULL; e->valor = 0; e->args = NULL;
+    e->nombre = NULL; e->valor = 0; e->args = NULL; e->cadena = NULL;
     return e;
 }
 
@@ -1482,20 +1544,35 @@ Expresion* crear_llamada(char* nombre, Expresion* arg) {
     Expresion* e = malloc(sizeof(Expresion));
     e->tipo = 3;
     e->nombre = strdup(nombre);
-    e->izq = arg; e->der = NULL; e->op = 0; e->valor = 0; e->args = NULL;
+    e->izq = arg; e->der = NULL; e->op = 0; e->valor = 0; e->args = NULL; e->cadena = NULL;
+    return e;
+}
+
+Expresion* crear_input(void) {
+    Expresion* e = malloc(sizeof(Expresion));
+    e->tipo = 4; // Tipo para input
+    e->nombre = NULL; e->valor = 0; e->cadena = NULL;
+    e->izq = e->der = e->args = NULL; e->op = 0;
     return e;
 }
 
 Instruccion* crear_asignacion(char* id, Expresion* expr) {
     Instruccion* i = malloc(sizeof(Instruccion));
     i->tipo = 0; i->id = strdup(id); i->expr = expr;
-    i->cond = NULL; i->cuerpo = NULL; i->sig = NULL;
+    i->cond = NULL; i->cuerpo = NULL; i->sig = NULL; i->cuerpo_else = NULL;
     return i;
 }
 
 Instruccion* crear_while(Expresion* cond, Instruccion* cuerpo) {
     Instruccion* i = malloc(sizeof(Instruccion));
     i->tipo = 1; i->cond = cond; i->cuerpo = cuerpo;
+    i->id = NULL; i->expr = NULL; i->sig = NULL; i->cuerpo_else = NULL;
+    return i;
+}
+
+Instruccion* crear_if(Expresion* cond, Instruccion* cuerpo, Instruccion* cuerpo_else) {
+    Instruccion* i = malloc(sizeof(Instruccion));
+    i->tipo = 3; i->cond = cond; i->cuerpo = cuerpo; i->cuerpo_else = cuerpo_else;
     i->id = NULL; i->expr = NULL; i->sig = NULL;
     return i;
 }
@@ -1503,7 +1580,7 @@ Instruccion* crear_while(Expresion* cond, Instruccion* cuerpo) {
 Instruccion* crear_return(Expresion* expr) {
     Instruccion* i = malloc(sizeof(Instruccion));
     i->tipo = 2; i->expr = expr;
-    i->id = NULL; i->cond = NULL; i->cuerpo = NULL; i->sig = NULL;
+    i->id = NULL; i->cond = NULL; i->cuerpo = NULL; i->sig = NULL; i->cuerpo_else = NULL;
     return i;
 }
 
@@ -1539,12 +1616,121 @@ Funcion* buscar_funcion(char* nombre) {
     return NULL;
 }
 
+Variable* buscar_variable(char* nombre) {
+    Variable* v = variables;
+    while (v) {
+        if (strcmp(v->nombre, nombre) == 0)
+            return v;
+        v = v->sig;
+    }
+    return NULL;
+}
+
+void asignar_variable(char* nombre, int valor) {
+    Variable* v = buscar_variable(nombre);
+    if (v) {
+        v->valor = valor;
+    } else {
+        v = malloc(sizeof(Variable));
+        v->nombre = strdup(nombre);
+        v->valor = valor;
+        v->sig = variables;
+        variables = v;
+    }
+}
+
+int obtener_variable(char* nombre) {
+    Variable* v = buscar_variable(nombre);
+    if (v) {
+        return v->valor;
+    }
+    return 0; // Variable no existe, devolver 0
+}
+
+// Función para evaluar una expresión matemática simple desde string
+int evaluar_expresion_string(char* expr) {
+    // Eliminar espacios
+    char limpia[256];
+    int j = 0;
+    for (int i = 0; expr[i] && j < 255; i++) {
+        if (expr[i] != ' ' && expr[i] != '\t') {
+            limpia[j++] = expr[i];
+        }
+    }
+    limpia[j] = '\0';
+    
+    // Buscar operadores (de derecha a izquierda para precedencia correcta)
+    for (int i = strlen(limpia) - 1; i >= 0; i--) {
+        if (limpia[i] == '+' || limpia[i] == '-') {
+            if (i == 0) continue; // Es un signo negativo al inicio
+            
+            limpia[i] = '\0';
+            int izq = evaluar_expresion_string(limpia);
+            int der = evaluar_expresion_string(limpia + i + 1);
+            return (limpia[i] == '+') ? izq + der : izq - der;
+        }
+    }
+    
+    for (int i = strlen(limpia) - 1; i >= 0; i--) {
+        if (limpia[i] == '*' || limpia[i] == '/') {
+            limpia[i] = '\0';
+            int izq = evaluar_expresion_string(limpia);
+            int der = evaluar_expresion_string(limpia + i + 1);
+            if (limpia[i] == '*') {
+                return izq * der;
+            } else {
+                if (der == 0) {
+                    printf("Error: División por cero\n");
+                    return 0;
+                }
+                return izq / der;
+            }
+        }
+    }
+    
+    // Si no hay operadores, debe ser un número
+    return atoi(limpia);
+}
+
+// Función para validar si una expresión es válida
+int validar_expresion(char* expr) {
+    int len = strlen(expr);
+    if (len == 0) return 0;
+    
+    int ultimo_fue_operador = 1; // Empezamos como si el anterior fuera operador
+    int parentesis = 0;
+    
+    for (int i = 0; i < len; i++) {
+        char c = expr[i];
+        
+        if (c == ' ' || c == '\t') continue;
+        
+        if (c >= '0' && c <= '9') {
+            ultimo_fue_operador = 0;
+        } else if (c == '+' || c == '-' || c == '*' || c == '/') {
+            if (ultimo_fue_operador && c != '-' && c != '+') return 0; // Operador inválido
+            ultimo_fue_operador = 1;
+        } else if (c == '(') {
+            parentesis++;
+            ultimo_fue_operador = 1;
+        } else if (c == ')') {
+            parentesis--;
+            if (parentesis < 0) return 0;
+            ultimo_fue_operador = 0;
+        } else {
+            return 0; // Carácter inválido
+        }
+    }
+    
+    return parentesis == 0 && !ultimo_fue_operador;
+}
+
 ResultadoRetorno ejecutar_con_retorno(Instruccion* instr) {
     ResultadoRetorno r = {0, 0};
     while (instr) {
         if (instr->tipo == 0) {
             int val = evaluar(instr->expr);
-            memoria[instr->id[0] - 'a'] = val;
+            asignar_variable(instr->id, val);
         } else if (instr->tipo == 1) {
             while (evaluar(instr->cond)) {
                 ResultadoRetorno temp = ejecutar_con_retorno(instr->cuerpo);
@@ -1554,6 +1740,14 @@ ResultadoRetorno ejecutar_con_retorno(Instruccion* instr) {
             r.hay_retorno = 1;
             r.valor = evaluar(instr->expr);
             return r;
+        } else if (instr->tipo == 3) { // IF
+            if (evaluar(instr->cond)) {
+                ResultadoRetorno temp = ejecutar_con_retorno(instr->cuerpo);
+                if (temp.hay_retorno) return temp;
+            } else if (instr->cuerpo_else) {
+                ResultadoRetorno temp = ejecutar_con_retorno(instr->cuerpo_else);
+                if (temp.hay_retorno) return temp;
+            }
         }
         instr = instr->sig;
     }
@@ -1564,7 +1758,7 @@ int evaluar(Expresion* expr) {
     if (!expr) return 0;
     switch (expr->tipo) {
         case 0: return expr->valor;
-        case 1: return memoria[expr->nombre[0] - 'a'];
+        case 1: return obtener_variable(expr->nombre);
         case 2: {
             int izq = evaluar(expr->izq);
             int der = evaluar(expr->der);
@@ -1574,6 +1768,11 @@ int evaluar(Expresion* expr) {
                 case '*': return izq * der;
                 case '/': return (der == 0) ? 0 : izq / der;
                 case '>': return izq > der;
+                case '<': return izq < der;
+                case 'G': return izq >= der; // MAYORIGUAL
+                case 'L': return izq <= der; // MENORIGUAL
+                case 'E': return izq == der; // IGUAL
+                case 'N': return izq != der; // DIFERENTE
             }
         }
         case 3: {
@@ -1582,12 +1781,78 @@ int evaluar(Expresion* expr) {
                 fprintf(stderr, "Función '%s' no definida\n", expr->nombre);
                 exit(1);
             }
-            int temp = memoria[f->parametro[0] - 'a'];
-            memoria[f->parametro[0] - 'a'] = evaluar(expr->izq);
+            int temp = obtener_variable(f->parametro);
+            asignar_variable(f->parametro, evaluar(expr->izq));
             ResultadoRetorno r = ejecutar_con_retorno(f->cuerpo);
-            memoria[f->parametro[0] - 'a'] = temp;
+            asignar_variable(f->parametro, temp);
             return r.valor;
         }
+        case 4: { // Input
+            int valor;
+            char buffer[256];
+            
+            while (1) {
+                printf("Ingrese un número o expresión matemática: ");
+                fflush(stdout);
+                
+                if (fgets(buffer, sizeof(buffer), stdin) == NULL) {
+                    fprintf(stderr, "Error al leer entrada\n");
+                    return 0;
+                }
+                
+                // Remover el salto de línea
+                int len = strlen(buffer);
+                if (len > 0 && buffer[len-1] == '\n') {
+                    buffer[len-1] = '\0';
+                    len--;
+                }
+                
+                if (len == 0) {
+                    printf("Error: Debe ingresar una expresión válida.\n");
+                    continue;
+                }
+                
+                // Verificar si es solo un número
+                char *ptr = buffer;
+                int es_numero_simple = 1;
+                
+                // Saltar espacios al inicio
+                while (*ptr == ' ' || *ptr == '\t') ptr++;
+                
+                // Verificar signo negativo opcional
+                if (*ptr == '-' || *ptr == '+') ptr++;
+                
+                // Verificar que todos los caracteres restantes sean dígitos
+                while (*ptr != '\0') {
+                    if (*ptr == ' ' || *ptr == '\t') {
+                        ptr++;
+                        continue;
+                    }
+                    if (*ptr < '0' || *ptr > '9') {
+                        es_numero_simple = 0;
+                        break;
+                    }
+                    ptr++;
+                }
+                
+                if (es_numero_simple) {
+                    valor = atoi(buffer);
+                    break;
+                } else {
+                    if (validar_expresion(buffer)) {
+                        valor = evaluar_expresion_string(buffer);
+                        printf("Resultado: %d\n", valor);
+                        break;
+                    } else {
+                        printf("Error: Expresión inválida. Use números y operadores +, -, *, /\n");
+                        printf("Ejemplos válidos: 5, 10+3, 20-5*2, 15/3\n");
+                    }
+                }
+            }
+            return valor;
+        }
+        case 5: // String - para compatibilidad, devuelve 0
+            return 0;
     }
     return 0;
 }
@@ -1596,17 +1861,35 @@ void ejecutar(Instruccion* instr) {
     while (instr) {
         if (instr->tipo == 0) {
             if (strcmp(instr->id, "_print") == 0) {
-                printf("%d\n", evaluar(instr->expr));
+                // Verificar si la expresión es un string
+                if (instr->expr->tipo == 5) {
+                    // Imprimir string sin comillas
+                    char* str = instr->expr->cadena;
+                    // Remover comillas si existen
+                    if (str[0] == '"' && str[strlen(str)-1] == '"') {
+                        str[strlen(str)-1] = '\0';
+                        printf("%s\n", str + 1);
+                        str[strlen(str)] = '"'; // Restaurar comilla final
+                    } else {
+                        printf("%s\n", str);
+                    }
+                } else {
+                    printf("%d\n", evaluar(instr->expr));
+                }
             } else {
                 int val = evaluar(instr->expr);
-                memoria[instr->id[0] - 'a'] = val;
+                asignar_variable(instr->id, val);
             }
         } else if (instr->tipo == 1) {
             while (evaluar(instr->cond)) {
                 ejecutar(instr->cuerpo);
             }
-        } else if (instr->tipo == 3) {
-            evaluar(crear_llamada(instr->id, instr->expr));
+        } else if (instr->tipo == 3) { // IF
+            if (evaluar(instr->cond)) {
+                ejecutar(instr->cuerpo);
+            } else if (instr->cuerpo_else) {
+                ejecutar(instr->cuerpo_else);
+            }
         }
         instr = instr->sig;
     }

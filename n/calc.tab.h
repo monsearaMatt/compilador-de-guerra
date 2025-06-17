@@ -56,10 +56,21 @@ extern int yydebug;
     YYUNDEF = 257,                 /* "invalid token"  */
     NUM = 258,                     /* NUM  */
     ID = 259,                      /* ID  */
-    ZAPATILLA = 260,               /* ZAPATILLA  */
-    CALEFACTOR = 261,              /* CALEFACTOR  */
-    TOROMAX = 262,                 /* TOROMAX  */
-    RETURN = 263                   /* RETURN  */
+    STRING = 260,                  /* STRING  */
+    ZAPATILLA = 261,               /* ZAPATILLA  */
+    CALEFACTOR = 262,              /* CALEFACTOR  */
+    TOROMAX = 263,                 /* TOROMAX  */
+    RETURN = 264,                  /* RETURN  */
+    TECLADO = 265,                 /* TECLADO  */
+    REFRIGERADOR = 266,            /* REFRIGERADOR  */
+    MICROONDAS = 267,              /* MICROONDAS  */
+    LICUADORA = 268,               /* LICUADORA  */
+    IGUAL = 269,                   /* IGUAL  */
+    DIFERENTE = 270,               /* DIFERENTE  */
+    MENORIGUAL = 271,              /* MENORIGUAL  */
+    MAYORIGUAL = 272,              /* MAYORIGUAL  */
+    MENOR = 273,                   /* MENOR  */
+    MAYOR = 274                    /* MAYOR  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -68,14 +79,15 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 60 "calc.y"
+#line 9 "calc.y"
 
     int num;
     char* id;
+    char* str;
     Expresion* expr;
     Instruccion* instr;
 
-#line 79 "calc.tab.h"
+#line 91 "calc.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;
