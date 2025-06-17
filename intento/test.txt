@@ -1,0 +1,10 @@
+toromax cuadrado(x) {
+  return x * x;
+}
+
+toromax incrementar(y) {
+  return y + 1;
+}
+
+a = cuadrado(incrementar(2));
+zapatilla a;

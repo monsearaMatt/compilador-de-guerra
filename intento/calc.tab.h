@@ -35,8 +35,8 @@
    especially those whose name start with YY_ or yy_.  They are
    private implementation details that can be changed or removed.  */
 
-#ifndef YY_YY_WARCODE_TAB_H_INCLUDED
-# define YY_YY_WARCODE_TAB_H_INCLUDED
+#ifndef YY_YY_CALC_TAB_H_INCLUDED
+# define YY_YY_CALC_TAB_H_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 0
@@ -56,32 +56,10 @@ extern int yydebug;
     YYUNDEF = 257,                 /* "invalid token"  */
     NUM = 258,                     /* NUM  */
     ID = 259,                      /* ID  */
-    MAYOR = 260,                   /* MAYOR  */
-    MENOR = 261,                   /* MENOR  */
-    IGUAL_IGUAL = 262,             /* IGUAL_IGUAL  */
-    PELOTON = 263,                 /* PELOTON  */
-    DISPARO = 264,                 /* DISPARO  */
-    HASTA = 265,                   /* HASTA  */
-    RETORNAR = 266,                /* RETORNAR  */
-    MISION = 267,                  /* MISION  */
-    PAR_ABRE = 268,                /* PAR_ABRE  */
-    PAR_CIERRA = 269,              /* PAR_CIERRA  */
-    PUNTO_COMA = 270,              /* PUNTO_COMA  */
-    COMA = 271,                    /* COMA  */
-    MAS = 272,                     /* MAS  */
-    MENOS = 273,                   /* MENOS  */
-    POR = 274,                     /* POR  */
-    DIVIDIDO = 275,                /* DIVIDIDO  */
-    POTENCIA = 276,                /* POTENCIA  */
-    SI = 277,                      /* SI  */
-    ENTONCES = 278,                /* ENTONCES  */
-    SINO = 279,                    /* SINO  */
-    MIENTRAS = 280,                /* MIENTRAS  */
-    HACER = 281,                   /* HACER  */
-    REPETIR = 282,                 /* REPETIR  */
-    LLAVE_ABRE = 283,              /* LLAVE_ABRE  */
-    LLAVE_CIERRA = 284,            /* LLAVE_CIERRA  */
-    IGUAL = 285                    /* IGUAL  */
+    ZAPATILLA = 260,               /* ZAPATILLA  */
+    CALEFACTOR = 261,              /* CALEFACTOR  */
+    TOROMAX = 262,                 /* TOROMAX  */
+    RETURN = 263                   /* RETURN  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -90,14 +68,14 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 36 "warcode.y"
+#line 60 "calc.y"
 
     int num;
     char* id;
-    char** lista_ids;
-    int* lista_nums;
+    Expresion* expr;
+    Instruccion* instr;
 
-#line 101 "warcode.tab.h"
+#line 79 "calc.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;
@@ -112,4 +90,4 @@ extern YYSTYPE yylval;
 int yyparse (void);
 
 
-#endif /* !YY_YY_WARCODE_TAB_H_INCLUDED  */
+#endif /* !YY_YY_CALC_TAB_H_INCLUDED  */
